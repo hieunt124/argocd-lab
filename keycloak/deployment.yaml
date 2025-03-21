@@ -1,55 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: keycloak
-  namespace: bienhnit-auth
-  labels:
-    app: keycloak
+  name: mysql
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: keycloak
+      app: mysql
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: keycloak
+        app: mysql
     spec:
       containers:
-      - name: keycloak
-        image: quay.io/keycloak/keycloak:24.0.5
-        args: ["start-dev"]
-        ports:
-        - name: http
-          containerPort: 8181
+      - image: mysql:5.6
+        name: mysql
         env:
-        - name: KEYCLOAK_ADMIN
-          value: "admin"
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          value: "admin"
-        - name: KC_PROXY
-          value: "edge"
-        - name: KC_HTTP_PORT
-          value: "8080"
-        - name: KC_HOSTNAME_STRICT
-          value: "false"
-        - name: KC_HOSTNAME_STRICT_HTTPS
-          value: "false"
-        - name: KC_HTTP_ENABLED
-          value: "true"
-        - name: KC_PROXY_ADDRESS_FORWARDING
-          value: "true"
-        readinessProbe:
-          httpGet:
-            path: /realms/master
-            port: 8181
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          failureThreshold: 3
-        resources:
-          limits:
-            cpu: "1"
-            memory: "1024Mi"
-          requests:
-            cpu: "500m"
-            memory: "512Mi"
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql
