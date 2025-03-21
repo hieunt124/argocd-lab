@@ -21,7 +21,7 @@ spec:
         args: ["start-dev"]
         ports:
         - name: http
-          containerPort: 8080
+          containerPort: 8181
         env:
         - name: KEYCLOAK_ADMIN
           value: "admin"
